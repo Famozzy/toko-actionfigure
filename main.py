@@ -122,6 +122,7 @@ def main():
                 jmlh = int(input('masukan jumlah barang : '))
                 inputdata_jualan(id, brng, hrg, jmlh)
             main()
+            return
 
         if pilih == '2':
             pilih_tabel = input('tabel yang mana ?[akun,jualan] : ')
@@ -133,6 +134,7 @@ def main():
                 'pilih barang (nama barang)?:')
             ubahdata(target)
             main()
+            return
 
         elif pilih == '4':
             pilih_tabel = input('tabel yang mana ?[akun,jualan] : ')
@@ -143,6 +145,7 @@ def main():
 
             hapusdata(pilih_tabel, target_id)
             main()
+            return
 
         elif pilih == '5':
             print('keluar dari program')
