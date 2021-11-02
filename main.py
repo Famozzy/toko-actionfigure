@@ -139,7 +139,7 @@ def updatetabel():
     for jualan in select('jualan'):
         tabel_jualan.add_row(
             [jualan.get('kode'), jualan.get('barang'),
-             f"Rp.{jualan.get('harga')}", jualan.get("stok")]
+             f"Rp {jualan.get('harga')}", jualan.get("stok")]
         )
 
     for akun in select('akun'):
