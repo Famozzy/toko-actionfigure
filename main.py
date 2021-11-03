@@ -9,8 +9,8 @@ tabel = {
 
 data = {
     "akun": [
-        {"ID": 1, "username": "admin", "password": 'admin'},
-        {"ID": 2, "username": "bayu", "password": 'geh'}
+        {"username": "admin", "password": 'admin'},
+        {"username": "bayu", "password": 'geh'}
     ],
     "jualan": [
         {"kode": "123", "barang": "actionfigure1", "harga":  100000, "stok": 5},
@@ -31,6 +31,12 @@ def clearConsole():
     os.system(command)
 
 
+def fetch_data():
+    if os.path.isfile('data.json'):
+        with open('data.json') as json_file:
+            data = json.load(json_file)
+
+
 def confirm(state):
     return input(f'\ndata telah {state}, tekan Enter untuk kembali ke menu...')
 
@@ -38,17 +44,17 @@ def confirm(state):
 def pilih_tabel():
     pilih_tabel = input('tabel yang mana ?[akun,jualan] : ')
 
-    if pilih_tabel != 'akun' or pilih_tabel != 'jualan':
-        return '\ntabel tidak ditemukan'
-
-    print(tabel.get(pilih_tabel))
-    return pilih_tabel
+    if pilih_tabel == 'akun' or pilih_tabel == "jualan":
+        print(tabel.get(pilih_tabel))
+        return pilih_tabel
+    else:
+        print("\ntabel tidak ditemukan")
+        return False
 
 
 def input_data():
     tabel = pilih_tabel()
     if tabel == 'akun':
-        id = int(input("masukan id : "))
         us = input("masukan username : ")
         pw = input("masukan password : ")
 
@@ -57,10 +63,10 @@ def input_data():
                 print(f"\nakun {us} sudah ada di database")
                 return input_data()
 
-        select('akun').append({"ID": id, "username": us, "password": pw})
+        select('akun').append({"username": us, "password": pw})
 
     elif tabel == 'jualan':
-        kode = int(input("masukan kode barang: "))
+        kode = input("masukan kode barang: ")
         brng = input('masukan nama barang : ')
         hrg = int(input('masukan harga : '))
         jmlh = int(input('masukan jumlah barang : '))
@@ -69,7 +75,6 @@ def input_data():
             {"kode": kode, "barang": brng, "harga": hrg, "stok": jmlh}
         )
     else:
-        print(tabel)
         return input_data()
 
     confirm('ditambakan')
@@ -91,8 +96,7 @@ def ubah_data():
                 jualan[ubah] = input('masukan perubahan :')
             elif ubah == 'harga' or ubah == 'stok':
                 jualan[ubah] = int(input('masukan perubahan :'))
-
-    confirm('diubah')
+            confirm('diubah')
 
 
 def hapus_data():
@@ -100,51 +104,43 @@ def hapus_data():
     tabel = pilih_tabel()
 
     if not tabel:
-        print(tabel)
         return hapus_data()
 
-    print('[Note : kode untuk jualan, ID untuk akun]')
-    target = input('pilih data mana yang akan dihapus ?[ID / kode] : ')
+    target = int(
+        input('pilih data mana yang akan dihapus ?[misalnya list ke-1] : '))
+    try:
+        if target > 0:
+            select(tabel).pop(target-1)
+            confirm('dihapus')
 
-    if tabel == 'akun':
-        akun = select('akun')
-        for i in range(len(akun)):
-            if int(target) == akun[i].get('ID'):
-                akun.pop(i)
-    elif tabel == 'jualan':
-        jualan = select('jualan')
-        for i in range(len(jualan)):
-            if target == jualan[i].get('kode'):
-                jualan.pop(i)
-    else:
-        print(tabel)
+    except IndexError:
+        print(f'\ntidak ada data ke-{target} pada tabel')
         return hapus_data()
-
-    confirm('dihapus')
 
 
 def updatetabel():
-
     with open('data.json', 'w') as json_file:
         json.dump(data, json_file, indent=2)
 
     tabel_akun = tabel.get('akun')
-    tabel_akun.field_names = ["ID", "username", "password"]
+    tabel_akun.field_names = ["No.", "username", "password"]
     tabel_akun.clear_rows()
 
     tabel_jualan = tabel.get("jualan")
-    tabel_jualan.field_names = ['kode', 'barang', 'harga', 'stok']
+    tabel_jualan.field_names = ['No.', 'kode', 'barang', 'harga', 'stok']
     tabel_jualan.clear_rows()
 
-    for jualan in select('jualan'):
+    data_jualan = select('jualan')
+    for i, jualan in enumerate(data_jualan):
         tabel_jualan.add_row(
-            [jualan.get('kode'), jualan.get('barang'),
+            [i + 1, jualan.get('kode'), jualan.get('barang'),
              f"Rp {jualan.get('harga')}", jualan.get("stok")]
         )
 
-    for akun in select('akun'):
+    data_akun = select('akun')
+    for i, akun in enumerate(data_akun):
         tabel_akun.add_row(
-            [akun.get('ID'), akun.get('username'),
+            [i + 1, akun.get('username'),
              akun.get('password')]
         )
 
@@ -160,6 +156,7 @@ def menu():
     | {"4. Hapus Data"}          |
     | {"5. Exit"}                |
     ==========================""")
+    return int(input("pilih Menu : "))
 
 
 def main():
@@ -167,8 +164,7 @@ def main():
         while True:
             clearConsole()
             updatetabel()
-            menu()
-            pilih = int(input("pilih Menu : "))
+            pilih = menu()
 
             if pilih == 1:
                 input_data()
@@ -198,10 +194,7 @@ def login():
 
 
 try:
-    # cek jika data.json ada untuk menimpa 'data'
-    if os.path.isfile('data.json'):
-        with open('data.json') as json_file:
-            data = json.load(json_file)
+    fetch_data()
     main()
 except KeyboardInterrupt:
     print('\nkeluar dari program')
